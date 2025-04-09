@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Boletim Escolar</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f0f2f5;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    .nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #007bff;
+      color: white;
+      padding: 12px 24px;
+      font-size: 18px;
+    }
+
+    .nav button {
+      background: #fff;
+      border: none;
+      color: #007bff;
+      font-size: 16px;
+      font-weight: bold;
+      border-radius: 8px;
+      padding: 6px 14px;
+      cursor: pointer;
+      transition: 0.2s ease-in-out;
+    }
+
+    .nav button:hover {
+      background: #e9ecef;
+    }
+
+    .page-controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .page-number {
+      font-weight: bold;
+      background: white;
+      color: #007bff;
+      padding: 6px 12px;
+      border-radius: 8px;
+    }
+
+    iframe {
+      flex: 1;
+      border: none;
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="nav">
+    <button onclick="window.location.href='sala.html'">← Voltar para as salas</button>
+
+    <div class="page-controls">
+      <button onclick="goPrev()">← Anterior</button>
+      <span class="page-number" id="page-number">Página: 1</span>
+      <button onclick="goNext()">Próxima →</button>
+    </div>
+
+    <button onclick="window.location.href='outros9a.html'">Verificar outras situações →</button>
+  </div>
+
+  <iframe id="viewer" src="a1.html"></iframe>
+
+  <script>
+    const pages = [
+      "a1.html", "a2.html", "a3.html", "a4.html", "a5.html", "a7.html", "a8.html",
+      "a9.html", "a10.html", "a11.html", "a12.html", "a14.html", "a15.html", "a16.html",
+      "a17.html", "a18.html", "a19.html", "a20.html", "a21.html", "a22.html", "a23.html",
+      "a24.html", "a25.html", "a26.html", "a27.html", "a28.html", "a30.html", "a31.html",
+      "a32.html", "a33.html"
+    ];
+
+    let currentIndex = 0;
+
+    const viewer = document.getElementById("viewer");
+    const pageNumber = document.getElementById("page-number");
+
+    function updateViewer() {
+      const currentPage = pages[currentIndex];
+      const pageNum = currentPage.match(/\d+/)[0]; // Extrai só o número
+      viewer.src = currentPage;
+      pageNumber.textContent = "Página: " + pageNum;
+    }
+
+    function goPrev() {
+      if (currentIndex > 0) {
+        currentIndex--;
+        updateViewer();
+      }
+    }
+
+    function goNext() {
+      if (currentIndex < pages.length - 1) {
+        currentIndex++;
+        updateViewer();
+      }
+    }
+
+    updateViewer();
+  </script>
+
+</body>
+</html>
