@@ -150,22 +150,37 @@
             for (let disciplina in jsonData) {
                 tabelaHTML += `<tr>
                     <td>${disciplina}</td>
-                    <td>${jsonData[disciplina].notas[0]}</td>
+                    <td class="nota">${jsonData[disciplina].notas[0]}</td>
                     <td>${jsonData[disciplina].faltas[0]}</td>
                     <td>${jsonData[disciplina].faltas_acumuladas[0]}</td>
-                    <td>${jsonData[disciplina].notas[1]}</td>
+                    <td class="nota">${jsonData[disciplina].notas[1]}</td>
                     <td>${jsonData[disciplina].faltas[1]}</td>
                     <td>${jsonData[disciplina].faltas_acumuladas[1]}</td>
-                    <td>${jsonData[disciplina].notas[2]}</td>
+                    <td class="nota">${jsonData[disciplina].notas[2]}</td>
                     <td>${jsonData[disciplina].faltas[2]}</td>
                     <td>${jsonData[disciplina].faltas_acumuladas[2]}</td>
-                    <td>${jsonData[disciplina].notas[3]}</td>
+                    <td class="nota">${jsonData[disciplina].notas[3]}</td>
                     <td>${jsonData[disciplina].faltas[3]}</td>
                     <td>${jsonData[disciplina].faltas_acumuladas[3]}</td>
                 </tr>`;
             }
 
             boletim.innerHTML = tabelaHTML;
+
+            // Estilização das notas após renderizar a tabela
+            const notas = boletim.querySelectorAll("td.nota");
+            notas.forEach(celula => {
+                const valor = celula.textContent.trim();
+                if (valor === "-") {
+                    celula.style.backgroundColor = "#e0d4f7"; // roxo claro
+                } else if (!isNaN(valor)) {
+                    const numero = parseFloat(valor);
+                    if (numero < 5) {
+                        celula.style.color = "#ff4c4c"; // vermelho
+                        celula.style.fontWeight = "bold";
+                    }
+                }
+            });
         }
 
         async function carregarDadosAluno(alunoId) {
