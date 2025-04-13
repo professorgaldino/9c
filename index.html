@@ -19,6 +19,7 @@
       height: 100vh;
     }
 
+    /* Estilo para o menu de navegação */
     .nav {
       display: flex;
       justify-content: space-between;
@@ -45,6 +46,7 @@
       background: #e9ecef;
     }
 
+    /* Estilo para os controles de navegação */
     .page-controls {
       display: flex;
       align-items: center;
@@ -68,21 +70,29 @@
 </head>
 <body>
 
+  <!-- Barra de navegação superior -->
   <div class="nav">
-    <button onclick="window.location.href='https://professorgaldino.github.io/sitetv/sala.html'">← Voltar para as salas</button>
+    <button onclick="window.location.href='https://professorgaldino.github.io/sitetv/sala.html'">
+      ← Voltar para as salas
+    </button>
 
+    <!-- Controles de navegação de página -->
     <div class="page-controls">
       <button onclick="goPrev()">← Anterior</button>
       <span class="page-number" id="page-number">Página: 1</span>
       <button onclick="goNext()">Próxima →</button>
     </div>
 
-    <button onclick="window.location.href='outros9a.html'">Verificar outras situações →</button>
+    <button onclick="window.location.href='outros.html'">
+      Verificar outras situações →
+    </button>
   </div>
 
+  <!-- Exibição do conteúdo da página -->
   <iframe id="viewer" src="a1.html"></iframe>
 
   <script>
+    // Lista das páginas a serem exibidas
     const pages = [
       "a1.html", "a2.html", "a3.html", "a4.html", "a5.html", "a6.html", "a7.html", "a8.html",
       "a9.html", "a10.html", "a11.html", "a12.html", "a13.html", "a14.html", "a15.html", "a16.html",
@@ -91,18 +101,20 @@
       "a35.html", "a37.html", "a38.html"
     ];
 
-    let currentIndex = 0;
+    let currentIndex = 0; // Índice da página atual
 
-    const viewer = document.getElementById("viewer");
-    const pageNumber = document.getElementById("page-number");
+    const viewer = document.getElementById("viewer"); // iframe onde o conteúdo é exibido
+    const pageNumber = document.getElementById("page-number"); // Exibição da página atual
 
+    // Função para atualizar a exibição da página
     function updateViewer() {
       const currentPage = pages[currentIndex];
-      const pageNum = currentPage.match(/\d+/)[0];
-      viewer.src = currentPage;
-      pageNumber.textContent = "Página: " + pageNum;
+      const pageNum = currentPage.match(/\d+/)[0]; // Extrai o número da página
+      viewer.src = currentPage; // Atualiza o conteúdo do iframe
+      pageNumber.textContent = "Página: " + pageNum; // Atualiza o número da página
     }
 
+    // Função para voltar à página anterior
     function goPrev() {
       if (currentIndex > 0) {
         currentIndex--;
@@ -110,6 +122,7 @@
       }
     }
 
+    // Função para ir para a próxima página
     function goNext() {
       if (currentIndex < pages.length - 1) {
         currentIndex++;
@@ -117,6 +130,7 @@
       }
     }
 
+    // Inicializa a exibição da primeira página
     updateViewer();
   </script>
 
