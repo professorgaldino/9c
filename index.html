@@ -84,11 +84,11 @@
 
   <script>
     const pages = [
-      "a1.html", "a2.html", "a3.html", "a4.html", "a5.html", "a7.html", "a8.html",
-      "a9.html", "a10.html", "a11.html", "a12.html", "a14.html", "a15.html", "a16.html",
-      "a17.html", "a18.html", "a19.html", "a20.html", "a21.html", "a22.html", "a23.html",
-      "a24.html", "a25.html", "a26.html", "a27.html", "a28.html", "a30.html", "a31.html",
-      "a32.html", "a33.html"
+      "a1.html", "a2.html", "a3.html", "a4.html", "a5.html", "a6.html", "a7.html", "a8.html",
+      "a9.html", "a10.html", "a11.html", "a12.html", "a13.html", "a14.html", "a15.html", "a16.html",
+      "a17.html", "a18.html", "a19.html", "a20.html", "a21.html", "a22.html", "a23.html", "a24.html",
+      "a25.html", "a26.html", "a27.html", "a28.html", "a31.html", "a32.html", "a33.html", "a34.html",
+      "a35.html", "a37.html", "a38.html"
     ];
 
     let currentIndex = 0;
@@ -98,7 +98,7 @@
 
     function updateViewer() {
       const currentPage = pages[currentIndex];
-      const pageNum = currentPage.match(/\d+/)[0]; // Extrai só o número
+      const pageNum = currentPage.match(/\d+/)[0];
       viewer.src = currentPage;
       pageNumber.textContent = "Página: " + pageNum;
     }
