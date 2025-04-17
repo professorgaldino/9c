@@ -8,7 +8,7 @@
     body {
       font-family: Arial, sans-serif;
       padding: 20px;
-      background-color: #e0f7fa; /* Fundo azul claro */
+      background-color: #e0f7fa;
       margin: 0;
     }
     h1 {
@@ -74,7 +74,7 @@
 
   <img id="logo" src="logoescola.jpeg" alt="Logo da Escola">
 
-  <h1>Dashboard de Notas 9°C</h1>
+  <h1>Dashboard de Notas</h1>
 
   <label for="bimestre">Selecione o bimestre:</label>
   <select id="bimestre">
@@ -256,16 +256,22 @@
         html += '<p><em>Nenhum aluno com nota vermelha neste bimestre.</em></p>';
       } else {
         html += '<h2>Alunos com Notas Vermelhas</h2>';
-        html += '<table>';
-        html += '<tr><th>Aluno</th><th>Nota 1</th><th>Nota 2</th><th>Nota 3</th><th>Nota 4</th></tr>';
+
+        const maxVermelhas = Math.max(...Object.values(vermelhasPorAluno).map(arr => arr.length));
+
+        html += '<table><tr><th>Aluno</th>';
+        for (let i = 1; i <= maxVermelhas; i++) {
+          html += `<th>Nota ${i}</th>`;
+        }
+        html += '</tr>';
 
         for (const aluno in vermelhasPorAluno) {
           const disciplinas = vermelhasPorAluno[aluno];
           html += `<tr><td>${aluno}</td>`;
-          for (let i = 0; i < 4; i++) {
+          for (let i = 0; i < maxVermelhas; i++) {
             html += `<td>${disciplinas[i] || ''}</td>`;
           }
-          html += `</tr>`;
+          html += '</tr>';
         }
 
         html += '</table>';
@@ -283,16 +289,22 @@
         html += '<p><em>Todos os alunos têm notas lançadas.</em></p>';
       } else {
         html += '<h2>Alunos Sem Nota Lançada</h2>';
-        html += '<table>';
-        html += '<tr><th>Aluno</th><th>Disciplina 1</th><th>Disciplina 2</th><th>Disciplina 3</th><th>Disciplina 4</th></tr>';
+
+        const maxSemNotas = Math.max(...Object.values(semNotaPorAluno).map(arr => arr.length));
+
+        html += '<table><tr><th>Aluno</th>';
+        for (let i = 1; i <= maxSemNotas; i++) {
+          html += `<th>Disciplina ${i}</th>`;
+        }
+        html += '</tr>';
 
         for (const aluno in semNotaPorAluno) {
           const disciplinas = semNotaPorAluno[aluno];
           html += `<tr><td>${aluno}</td>`;
-          for (let i = 0; i < 4; i++) {
+          for (let i = 0; i < maxSemNotas; i++) {
             html += `<td>${disciplinas[i] || ''}</td>`;
           }
-          html += `</tr>`;
+          html += '</tr>';
         }
 
         html += '</table>';
