@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard de Notas por Bimestre</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background-color: #e0f7fa; /* Fundo azul claro */
+      margin: 0;
+    }
+    h1 {
+      color: #333;
+    }
+    select {
+      padding: 5px;
+      font-size: 16px;
+      margin-top: 10px;
+    }
+    #mensagem {
+      margin-top: 20px;
+      color: red;
+      font-weight: bold;
+    }
+    #grafico-container {
+      max-width: 900px;
+      margin-top: 40px;
+      background-color: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 30px;
+      background-color: white;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: left;
+    }
+    th {
+      background-color: #eee;
+    }
+    h2 {
+      margin-top: 40px;
+    }
+    #logo {
+      position: absolute;
+      top: 10px;
+      right: 20px;
+      max-width: 150px;
+      opacity: 0.7;
+    }
+    #voltarBtn {
+      margin-top: 30px;
+      padding: 10px 20px;
+      background-color: #00796b;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    #voltarBtn:hover {
+      background-color: #004d40;
+    }
+  </style>
+</head>
+<body>
+
+  <img id="logo" src="logoescola.jpeg" alt="Logo da Escola">
+
+  <h1>Dashboard de Notas 6°A</h1>
+
+  <label for="bimestre">Selecione o bimestre:</label>
+  <select id="bimestre">
+    <option value="1">1º Bimestre</option>
+    <option value="2">2º Bimestre</option>
+    <option value="3">3º Bimestre</option>
+    <option value="4">4º Bimestre</option>
+  </select>
+
+  <p id="mensagem"></p>
+
+  <div id="grafico-container">
+    <canvas id="graficoNotas"></canvas>
+  </div>
+
+  <div id="tabela-container"></div>
+
+  <button id="voltarBtn" onclick="window.location.href='index.html';">Voltar à Sala</button>
+
+  <script>
+    const chartCanvas = document.getElementById('graficoNotas');
+    const tabelaContainer = document.getElementById('tabela-container');
+    let graficoNotas = null;
+
+    async function carregarDados(bimestre) {
+      const mensagem = document.getElementById('mensagem');
+      mensagem.textContent = 'Carregando...';
+      tabelaContainer.innerHTML = '';
+
+      try {
+        const [dadosRes, alunosRes] = await Promise.all([
+          fetch(`dados${bimestre}.json`),
+          fetch(`alunos.json`)
+        ]);
+
+        const dados = await dadosRes.json();
+        const alunos = await alunosRes.json();
+
+        const analise = {};
+        const todasDisciplinas = new Set();
+        const notasVermelhas = [];
+        const semNotas = [];
+        let encontrouNota = false;
+
+        for (const id in dados) {
+          const disciplinas = dados[id];
+          for (const disc in disciplinas) {
+            todasDisciplinas.add(disc);
+          }
+        }
+
+        todasDisciplinas.forEach(disc => {
+          analise[disc] = { boas: 0, ruins: 0, semnota: 0 };
+        });
+
+        for (const id in dados) {
+          const aluno = alunos[id];
+          if (!aluno) continue;
+
+          const disciplinas = dados[id];
+          todasDisciplinas.forEach(disc => {
+            const notaStr = disciplinas?.[disc]?.notas?.[bimestre - 1];
+            const nota = parseFloat(notaStr);
+
+            if (notaStr === '-' || notaStr === undefined || isNaN(nota)) {
+              analise[disc].semnota++;
+              semNotas.push({ aluno: aluno.nome, disciplina: disc });
+              return;
+            }
+
+            encontrouNota = true;
+
+            if (nota >= 5) {
+              analise[disc].boas++;
+            } else {
+              analise[disc].ruins++;
+              notasVermelhas.push({
+                aluno: aluno.nome,
+                disciplina: disc,
+                nota: nota.toFixed(1)
+              });
+            }
+          });
+        }
+
+        if (todasDisciplinas.size === 0) {
+          mensagem.textContent = 'Não há disciplinas disponíveis neste bimestre.';
+          if (graficoNotas) graficoNotas.destroy();
+          return;
+        }
+
+        if (!encontrouNota) {
+          mensagem.textContent = 'Nenhuma nota lançada neste bimestre. As disciplinas aparecerão zeradas.';
+        } else {
+          mensagem.textContent = '';
+        }
+
+        atualizarGrafico(analise);
+        gerarTabelas(notasVermelhas, semNotas);
+      } catch (error) {
+        mensagem.textContent = 'Erro ao carregar os dados.';
+        console.error(error);
+        if (graficoNotas) graficoNotas.destroy();
+      }
+    }
+
+    function atualizarGrafico(analise) {
+      const labels = Object.keys(analise);
+      const boas = labels.map(d => analise[d].boas);
+      const ruins = labels.map(d => analise[d].ruins);
+      const semnota = labels.map(d => analise[d].semnota);
+
+      if (graficoNotas) graficoNotas.destroy();
+
+      graficoNotas = new Chart(chartCanvas, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: 'Notas ≥ 5 (Satisfatórias)',
+              data: boas,
+              backgroundColor: 'green'
+            },
+            {
+              label: 'Notas < 5 (Vermelhas)',
+              data: ruins,
+              backgroundColor: 'red'
+            },
+            {
+              label: 'Sem Nota',
+              data: semnota,
+              backgroundColor: 'gray'
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            y: {
+              beginAtZero: true,
+              title: {
+                display: true,
+                text: 'Quantidade de Alunos'
+              }
+            },
+            x: {
+              title: {
+                display: true,
+                text: 'Disciplinas'
+              }
+            }
+          },
+          plugins: {
+            legend: {
+              position: 'top'
+            },
+            title: {
+              display: true,
+              text: 'Análise de Notas por Disciplina'
+            }
+          }
+        }
+      });
+    }
+
+    function gerarTabelas(notas, semNotas) {
+      let html = '';
+
+      const vermelhasPorAluno = {};
+      notas.forEach(item => {
+        if (!vermelhasPorAluno[item.aluno]) {
+          vermelhasPorAluno[item.aluno] = [];
+        }
+        vermelhasPorAluno[item.aluno].push(`${item.disciplina} (${item.nota})`);
+      });
+
+      if (notas.length === 0) {
+        html += '<p><em>Nenhum aluno com nota vermelha neste bimestre.</em></p>';
+      } else {
+        html += '<h2>Alunos com Notas Vermelhas</h2>';
+        html += '<table>';
+        html += '<tr><th>Aluno</th><th>Nota 1</th><th>Nota 2</th><th>Nota 3</th><th>Nota 4</th></tr>';
+
+        for (const aluno in vermelhasPorAluno) {
+          const disciplinas = vermelhasPorAluno[aluno];
+          html += `<tr><td>${aluno}</td>`;
+          for (let i = 0; i < 4; i++) {
+            html += `<td>${disciplinas[i] || ''}</td>`;
+          }
+          html += `</tr>`;
+        }
+
+        html += '</table>';
+      }
+
+      const semNotaPorAluno = {};
+      semNotas.forEach(item => {
+        if (!semNotaPorAluno[item.aluno]) {
+          semNotaPorAluno[item.aluno] = [];
+        }
+        semNotaPorAluno[item.aluno].push(item.disciplina);
+      });
+
+      if (semNotas.length === 0) {
+        html += '<p><em>Todos os alunos têm notas lançadas.</em></p>';
+      } else {
+        html += '<h2>Alunos Sem Nota Lançada</h2>';
+        html += '<table>';
+        html += '<tr><th>Aluno</th><th>Disciplina 1</th><th>Disciplina 2</th><th>Disciplina 3</th><th>Disciplina 4</th></tr>';
+
+        for (const aluno in semNotaPorAluno) {
+          const disciplinas = semNotaPorAluno[aluno];
+          html += `<tr><td>${aluno}</td>`;
+          for (let i = 0; i < 4; i++) {
+            html += `<td>${disciplinas[i] || ''}</td>`;
+          }
+          html += `</tr>`;
+        }
+
+        html += '</table>';
+      }
+
+      tabelaContainer.innerHTML = html;
+    }
+
+    document.getElementById('bimestre').addEventListener('change', e => {
+      carregarDados(e.target.value);
+    });
+
+    carregarDados(1);
+  </script>
+
+</body>
+</html>
