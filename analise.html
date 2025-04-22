@@ -267,7 +267,12 @@
 
         for (const aluno in vermelhasPorAluno) {
           const disciplinas = vermelhasPorAluno[aluno];
-          html += `<tr><td>${aluno}</td>`;
+          const destaque = disciplinas.length >= 4;
+
+          const linhaStyle = destaque ? ' style="background-color: yellow;"' : '';
+          const nomeStyle = destaque ? ' style="color:red; font-weight:bold;"' : '';
+
+          html += `<tr${linhaStyle}><td${nomeStyle}>${aluno}</td>`;
           for (let i = 0; i < maxVermelhas; i++) {
             html += `<td>${disciplinas[i] || ''}</td>`;
           }
