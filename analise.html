@@ -117,6 +117,7 @@
         const todasDisciplinas = new Set();
         const notasVermelhas = [];
         const semNotas = [];
+        const riscoRetencao = [];
         let encontrouNota = false;
 
         for (const id in dados) {
@@ -135,6 +136,7 @@
           if (!aluno) continue;
 
           const disciplinas = dados[id];
+          let notasVermelhasPorAluno = 0;
           todasDisciplinas.forEach(disc => {
             const notaStr = disciplinas?.[disc]?.notas?.[bimestre - 1];
             const nota = parseFloat(notaStr);
@@ -156,8 +158,16 @@
                 disciplina: disc,
                 nota: nota.toFixed(1)
               });
+              notasVermelhasPorAluno++;
             }
           });
+
+          if (notasVermelhasPorAluno >= 4) {
+            riscoRetencao.push({
+              aluno: aluno.nome,
+              disciplinas: notasVermelhas.filter(item => item.aluno === aluno.nome)
+            });
+          }
         }
 
         if (todasDisciplinas.size === 0) {
@@ -173,7 +183,7 @@
         }
 
         atualizarGrafico(analise);
-        gerarTabelas(notasVermelhas, semNotas);
+        gerarTabelas(notasVermelhas, semNotas, riscoRetencao);
       } catch (error) {
         mensagem.textContent = 'Erro ao carregar os dados.';
         console.error(error);
@@ -241,9 +251,10 @@
       });
     }
 
-    function gerarTabelas(notas, semNotas) {
+    function gerarTabelas(notas, semNotas, riscoRetencao) {
       let html = '';
 
+      // Notas vermelhas
       const vermelhasPorAluno = {};
       notas.forEach(item => {
         if (!vermelhasPorAluno[item.aluno]) {
@@ -256,32 +267,27 @@
         html += '<p><em>Nenhum aluno com nota vermelha neste bimestre.</em></p>';
       } else {
         html += '<h2>Alunos com Notas Vermelhas</h2>';
-
         const maxVermelhas = Math.max(...Object.values(vermelhasPorAluno).map(arr => arr.length));
-
         html += '<table><tr><th>Aluno</th>';
         for (let i = 1; i <= maxVermelhas; i++) {
           html += `<th>Nota ${i}</th>`;
         }
         html += '</tr>';
-
         for (const aluno in vermelhasPorAluno) {
           const disciplinas = vermelhasPorAluno[aluno];
           const destaque = disciplinas.length >= 4;
-
           const linhaStyle = destaque ? ' style="background-color: yellow;"' : '';
           const nomeStyle = destaque ? ' style="color:red; font-weight:bold;"' : '';
-
           html += `<tr${linhaStyle}><td${nomeStyle}>${aluno}</td>`;
           for (let i = 0; i < maxVermelhas; i++) {
             html += `<td>${disciplinas[i] || ''}</td>`;
           }
           html += '</tr>';
         }
-
         html += '</table>';
       }
 
+      // Sem notas
       const semNotaPorAluno = {};
       semNotas.forEach(item => {
         if (!semNotaPorAluno[item.aluno]) {
@@ -294,15 +300,12 @@
         html += '<p><em>Todos os alunos têm notas lançadas.</em></p>';
       } else {
         html += '<h2>Alunos Sem Nota Lançada</h2>';
-
         const maxSemNotas = Math.max(...Object.values(semNotaPorAluno).map(arr => arr.length));
-
         html += '<table><tr><th>Aluno</th>';
         for (let i = 1; i <= maxSemNotas; i++) {
           html += `<th>Disciplina ${i}</th>`;
         }
         html += '</tr>';
-
         for (const aluno in semNotaPorAluno) {
           const disciplinas = semNotaPorAluno[aluno];
           html += `<tr><td>${aluno}</td>`;
@@ -311,7 +314,31 @@
           }
           html += '</tr>';
         }
+        html += '</table>';
+      }
 
+      // Risco de retenção
+      if (riscoRetencao.length === 0) {
+        html += '<p><em>Nenhum aluno com risco de retenção neste bimestre.</em></p>';
+      } else {
+        html += '<h2>Risco de Retenção</h2>';
+        html += '<table><tr><th>Aluno</th>';
+        const maxNotas = Math.max(...riscoRetencao.map(item => item.disciplinas.length));
+        for (let i = 1; i <= maxNotas; i++) {
+          html += `<th>Nota ${i}</th>`;
+        }
+        html += '</tr>';
+        riscoRetencao.forEach(item => {
+          html += `<tr><td>${item.aluno}</td>`;
+          item.disciplinas.forEach(disciplina => {
+            html += `<td>${disciplina.disciplina} (${disciplina.nota})</td>`;
+          });
+          const colunasRestantes = maxNotas - item.disciplinas.length;
+          for (let i = 0; i < colunasRestantes; i++) {
+            html += '<td></td>';
+          }
+          html += '</tr>';
+        });
         html += '</table>';
       }
 
