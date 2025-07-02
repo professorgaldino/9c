@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Dashboard de Notas por Bimestre</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -11,9 +12,7 @@
       background-color: #e0f7fa;
       margin: 0;
     }
-    h1 {
-      color: #333;
-    }
+    h1 { color: #333; }
     select {
       padding: 5px;
       font-size: 16px;
@@ -32,6 +31,9 @@
       border-radius: 10px;
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
+    #tabela-container {
+      margin-top: 30px;
+    }
     table {
       width: 100%;
       border-collapse: collapse;
@@ -43,12 +45,8 @@
       padding: 8px;
       text-align: left;
     }
-    th {
-      background-color: #eee;
-    }
-    h2 {
-      margin-top: 40px;
-    }
+    th { background-color: #eee; }
+    h2 { margin-top: 40px; }
     #logo {
       position: absolute;
       top: 10px;
@@ -56,26 +54,24 @@
       max-width: 150px;
       opacity: 0.7;
     }
-    #voltarBtn {
-      margin-top: 30px;
-      padding: 10px 20px;
+    button {
+      margin-top: 20px;
+      padding: 10px 15px;
       background-color: #00796b;
       color: white;
       border: none;
       border-radius: 5px;
       cursor: pointer;
+      margin-right: 10px;
     }
-    #voltarBtn:hover {
+    button:hover {
       background-color: #004d40;
     }
   </style>
 </head>
 <body>
-
-  <img id="logo" src="logoescola.jpeg" alt="Logo da Escola">
-
+  <img id="logo" src="logoescola.jpeg" alt="Logo da Escola" />
   <h1>Dashboard de Notas</h1>
-
   <label for="bimestre">Selecione o bimestre:</label>
   <select id="bimestre">
     <option value="1">1º Bimestre</option>
@@ -83,111 +79,94 @@
     <option value="3">3º Bimestre</option>
     <option value="4">4º Bimestre</option>
   </select>
-
   <p id="mensagem"></p>
-
   <div id="grafico-container">
     <canvas id="graficoNotas"></canvas>
   </div>
-
   <div id="tabela-container"></div>
-
-  <button id="voltarBtn" onclick="window.location.href='index.html';">Voltar à Sala</button>
-
+  <div id="risco-container"></div>
+  <div id="semnota-container"></div>
+  <button onclick="window.location.href='index.html';">Voltar à Sala</button>
   <script>
-    const chartCanvas = document.getElementById('graficoNotas');
-    const tabelaContainer = document.getElementById('tabela-container');
-    let graficoNotas = null;
+    let graficoNotas;
+    let bimestreSelecionado = 1;
+
+    document.getElementById('bimestre').addEventListener('change', e => {
+      carregarDados(e.target.value);
+      carregarDadosTodosBimestres();
+    });
 
     async function carregarDados(bimestre) {
-      const mensagem = document.getElementById('mensagem');
-      mensagem.textContent = 'Carregando...';
-      tabelaContainer.innerHTML = '';
-
+      bimestreSelecionado = parseInt(bimestre);
       try {
-        const [dadosRes, alunosRes] = await Promise.all([
-          fetch(`dados${bimestre}.json`),
-          fetch(`alunos.json`)
-        ]);
-
-        const dados = await dadosRes.json();
-        const alunos = await alunosRes.json();
-
+        const res = await fetch(`dados${bimestre}.json`);
+        const dados = await res.json();
+        const alunos = await fetch('alunos.json').then(r => r.json());
+        const disciplinas = new Set();
         const analise = {};
-        const todasDisciplinas = new Set();
-        const notasVermelhas = [];
-        const semNotas = [];
-        const riscoRetencao = [];
-        let encontrouNota = false;
+        const vermelhos = {};
+        const semNotas = {};
 
         for (const id in dados) {
-          const disciplinas = dados[id];
-          for (const disc in disciplinas) {
-            todasDisciplinas.add(disc);
+          const nome = alunos[id]?.nome;
+          if (!nome || !isNaN(nome)) continue;
+          for (const disc in dados[id]) {
+            disciplinas.add(disc);
           }
         }
 
-        todasDisciplinas.forEach(disc => {
+        disciplinas.forEach(disc => {
           analise[disc] = { boas: 0, ruins: 0, semnota: 0 };
         });
 
         for (const id in dados) {
-          const aluno = alunos[id];
-          if (!aluno) continue;
+          const nome = alunos[id]?.nome;
+          if (!nome || !isNaN(nome)) continue;
 
-          const disciplinas = dados[id];
-          let notasVermelhasPorAluno = 0;
-          todasDisciplinas.forEach(disc => {
-            const notaStr = disciplinas?.[disc]?.notas?.[bimestre - 1];
+          for (const disc of disciplinas) {
+            const notaStr = dados[id][disc]?.notas?.[bimestre - 1];
             const nota = parseFloat(notaStr);
-
-            if (notaStr === '-' || notaStr === undefined || isNaN(nota)) {
+            if (!notaStr || notaStr === '-' || isNaN(nota)) {
               analise[disc].semnota++;
-              semNotas.push({ aluno: aluno.nome, disciplina: disc });
-              return;
-            }
-
-            encontrouNota = true;
-
-            if (nota >= 5) {
+              if (!semNotas[nome]) semNotas[nome] = [];
+              semNotas[nome].push(disc);
+            } else if (nota >= 5) {
               analise[disc].boas++;
             } else {
               analise[disc].ruins++;
-              notasVermelhas.push({
-                aluno: aluno.nome,
-                disciplina: disc,
-                nota: nota.toFixed(1)
-              });
-              notasVermelhasPorAluno++;
+              if (!vermelhos[nome]) vermelhos[nome] = [];
+              vermelhos[nome].push(`${disc} (${nota.toFixed(1)})`);
             }
-          });
-
-          if (notasVermelhasPorAluno >= 4) {
-            riscoRetencao.push({
-              aluno: aluno.nome,
-              disciplinas: notasVermelhas.filter(item => item.aluno === aluno.nome)
-            });
           }
         }
 
-        if (todasDisciplinas.size === 0) {
-          mensagem.textContent = 'Não há disciplinas disponíveis neste bimestre.';
-          if (graficoNotas) graficoNotas.destroy();
-          return;
-        }
-
-        if (!encontrouNota) {
-          mensagem.textContent = 'Nenhuma nota lançada neste bimestre. As disciplinas aparecerão zeradas.';
-        } else {
-          mensagem.textContent = '';
-        }
-
         atualizarGrafico(analise);
-        gerarTabelas(notasVermelhas, semNotas, riscoRetencao);
+
+        let html = '';
+        if (Object.keys(vermelhos).length > 0) {
+          html += '<h2>Notas Vermelhas no Bimestre</h2>';
+          html += '<table><tr><th>Aluno</th><th>🔴 Disciplinas com Nota < 5</th></tr>';
+          for (const nome in vermelhos) {
+            html += `<tr><td>${nome}</td><td>${vermelhos[nome].join(', ')}</td></tr>`;
+          }
+          html += '</table>';
+        }
+        document.getElementById('tabela-container').innerHTML = html;
+
+        let htmlSem = '';
+        if (Object.keys(semNotas).length > 0) {
+          htmlSem += '<h2>Alunos com Disciplinas Sem Nota</h2>';
+          htmlSem += '<table><tr><th>Aluno</th><th>Disciplinas</th></tr>';
+          for (const nome in semNotas) {
+            htmlSem += `<tr><td>${nome}</td><td>${semNotas[nome].join(', ')}</td></tr>`;
+          }
+          htmlSem += '</table>';
+        }
+        document.getElementById('semnota-container').innerHTML = htmlSem;
+
       } catch (error) {
-        mensagem.textContent = 'Erro ao carregar os dados.';
+        document.getElementById('mensagem').textContent = 'Erro ao carregar os dados.';
         console.error(error);
-        if (graficoNotas) graficoNotas.destroy();
       }
     }
 
@@ -199,158 +178,104 @@
 
       if (graficoNotas) graficoNotas.destroy();
 
-      graficoNotas = new Chart(chartCanvas, {
+      graficoNotas = new Chart(document.getElementById('graficoNotas'), {
         type: 'bar',
         data: {
-          labels: labels,
+          labels,
           datasets: [
-            {
-              label: 'Notas ≥ 5 (Satisfatórias)',
-              data: boas,
-              backgroundColor: 'green'
-            },
-            {
-              label: 'Notas < 5 (Vermelhas)',
-              data: ruins,
-              backgroundColor: 'red'
-            },
-            {
-              label: 'Sem Nota',
-              data: semnota,
-              backgroundColor: 'gray'
-            }
+            { label: 'Notas ≥ 5', data: boas, backgroundColor: 'green' },
+            { label: 'Notas < 5', data: ruins, backgroundColor: 'red' },
+            { label: 'Sem Nota', data: semnota, backgroundColor: 'gray' }
           ]
         },
         options: {
           responsive: true,
-          scales: {
-            y: {
-              beginAtZero: true,
-              title: {
-                display: true,
-                text: 'Quantidade de Alunos'
-              }
-            },
-            x: {
-              title: {
-                display: true,
-                text: 'Disciplinas'
-              }
-            }
-          },
-          plugins: {
-            legend: {
-              position: 'top'
-            },
-            title: {
-              display: true,
-              text: 'Análise de Notas por Disciplina'
-            }
-          }
+          plugins: { title: { display: true, text: 'Análise de Notas por Disciplina' } },
+          scales: { y: { beginAtZero: true } }
         }
       });
     }
 
-    function gerarTabelas(notas, semNotas, riscoRetencao) {
-      let html = '';
-
-      // Notas vermelhas
-      const vermelhasPorAluno = {};
-      notas.forEach(item => {
-        if (!vermelhasPorAluno[item.aluno]) {
-          vermelhasPorAluno[item.aluno] = [];
-        }
-        vermelhasPorAluno[item.aluno].push(`${item.disciplina} (${item.nota})`);
-      });
-
-      if (notas.length === 0) {
-        html += '<p><em>Nenhum aluno com nota vermelha neste bimestre.</em></p>';
-      } else {
-        html += '<h2>Alunos com Notas Vermelhas</h2>';
-        const maxVermelhas = Math.max(...Object.values(vermelhasPorAluno).map(arr => arr.length));
-        html += '<table><tr><th>Aluno</th>';
-        for (let i = 1; i <= maxVermelhas; i++) {
-          html += `<th>Nota ${i}</th>`;
-        }
-        html += '</tr>';
-        for (const aluno in vermelhasPorAluno) {
-          const disciplinas = vermelhasPorAluno[aluno];
-          const destaque = disciplinas.length >= 4;
-          const linhaStyle = destaque ? ' style="background-color: yellow;"' : '';
-          const nomeStyle = destaque ? ' style="color:red; font-weight:bold;"' : '';
-          html += `<tr${linhaStyle}><td${nomeStyle}>${aluno}</td>`;
-          for (let i = 0; i < maxVermelhas; i++) {
-            html += `<td>${disciplinas[i] || ''}</td>`;
+    async function carregarDadosTodosBimestres() {
+      try {
+        const alunos = await fetch('alunos.json').then(r => r.json());
+        const dadosBimestres = [];
+        for (let i = 1; i <= bimestreSelecionado; i++) {
+          try {
+            const res = await fetch(`dados${i}.json`);
+            dadosBimestres[i - 1] = res.ok ? await res.json() : null;
+          } catch {
+            dadosBimestres[i - 1] = null;
           }
-          html += '</tr>';
         }
-        html += '</table>';
-      }
 
-      // Sem notas
-      const semNotaPorAluno = {};
-      semNotas.forEach(item => {
-        if (!semNotaPorAluno[item.aluno]) {
-          semNotaPorAluno[item.aluno] = [];
-        }
-        semNotaPorAluno[item.aluno].push(item.disciplina);
-      });
+        const mediasPorAluno = {};
+        const riscoRetencao = {};
+        const todasDisciplinas = new Set();
 
-      if (semNotas.length === 0) {
-        html += '<p><em>Todos os alunos têm notas lançadas.</em></p>';
-      } else {
-        html += '<h2>Alunos Sem Nota Lançada</h2>';
-        const maxSemNotas = Math.max(...Object.values(semNotaPorAluno).map(arr => arr.length));
-        html += '<table><tr><th>Aluno</th>';
-        for (let i = 1; i <= maxSemNotas; i++) {
-          html += `<th>Disciplina ${i}</th>`;
-        }
-        html += '</tr>';
-        for (const aluno in semNotaPorAluno) {
-          const disciplinas = semNotaPorAluno[aluno];
-          html += `<tr><td>${aluno}</td>`;
-          for (let i = 0; i < maxSemNotas; i++) {
-            html += `<td>${disciplinas[i] || ''}</td>`;
+        for (const dados of dadosBimestres) {
+          if (!dados) continue;
+          for (const id in dados) {
+            const nome = alunos[id]?.nome;
+            if (!nome || !isNaN(nome)) continue;
+            for (const disc in dados[id]) {
+              todasDisciplinas.add(disc);
+            }
           }
-          html += '</tr>';
         }
-        html += '</table>';
-      }
 
-      // Risco de retenção
-      if (riscoRetencao.length === 0) {
-        html += '<p><em>Nenhum aluno com risco de retenção neste bimestre.</em></p>';
-      } else {
-        html += '<h2>Risco de Retenção</h2>';
-        html += '<table><tr><th>Aluno</th>';
-        const maxNotas = Math.max(...riscoRetencao.map(item => item.disciplinas.length));
-        for (let i = 1; i <= maxNotas; i++) {
-          html += `<th>Nota ${i}</th>`;
-        }
-        html += '</tr>';
-        riscoRetencao.forEach(item => {
-          html += `<tr><td>${item.aluno}</td>`;
-          item.disciplinas.forEach(disciplina => {
-            html += `<td>${disciplina.disciplina} (${disciplina.nota})</td>`;
+        for (const id in alunos) {
+          const nome = alunos[id]?.nome;
+          if (!nome || !isNaN(nome)) continue;
+          mediasPorAluno[nome] = {};
+          todasDisciplinas.forEach(disc => {
+            let soma = 0, count = 0;
+            for (let b = 0; b < bimestreSelecionado; b++) {
+              const dados = dadosBimestres[b];
+              if (!dados || !dados[id] || !dados[id][disc]) continue;
+              const nota = dados[id][disc].notas?.[b];
+              const num = parseFloat(nota);
+              if (!isNaN(num)) {
+                soma += num;
+                count++;
+              }
+            }
+            if (count > 0) {
+              const media = soma / count;
+              mediasPorAluno[nome][disc] = media;
+            }
           });
-          const colunasRestantes = maxNotas - item.disciplinas.length;
-          for (let i = 0; i < colunasRestantes; i++) {
-            html += '<td></td>';
+        }
+
+        for (const nome in mediasPorAluno) {
+          const disciplinasBaixas = [];
+          for (const disc in mediasPorAluno[nome]) {
+            const media = mediasPorAluno[nome][disc];
+            if (media < 5) {
+              disciplinasBaixas.push(`${disc} (${media.toFixed(1)})`);
+            }
           }
-          html += '</tr>';
-        });
+          if (disciplinasBaixas.length >= 4) {
+            riscoRetencao[nome] = disciplinasBaixas;
+          }
+        }
+
+        let html = `<h2>Alunos com Risco de Retenção (Média até ${bimestreSelecionado}º Bimestre)</h2>`;
+        html += '<table><tr><th>Aluno</th><th>🔴 Disciplinas com Média < 5</th></tr>';
+        for (const nome in riscoRetencao) {
+          html += `<tr><td>${nome}</td><td>${riscoRetencao[nome].join(', ')}</td></tr>`;
+        }
         html += '</table>';
+        document.getElementById('risco-container').innerHTML = html;
+
+      } catch (error) {
+        document.getElementById('mensagem').textContent = 'Erro ao carregar dados dos bimestres';
+        console.error(error);
       }
-
-      tabelaContainer.innerHTML = html;
     }
-
-    document.getElementById('bimestre').addEventListener('change', e => {
-      carregarDados(e.target.value);
-    });
 
     carregarDados(1);
+    carregarDadosTodosBimestres();
   </script>
-
 </body>
 </html>

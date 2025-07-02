@@ -1,176 +1,341 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Boletim Escolar</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
   <style>
-    * {
-      box-sizing: border-box;
-    }
-
     body {
+      font-family: 'Poppins', sans-serif;
       margin: 0;
       padding: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: #f0f2f5;
+      background-color: #f5f5f5;
+      color: #333;
+      text-align: center;
+    }
+    header {
+      background-color: white;
+      padding: 20px;
       display: flex;
       flex-direction: column;
-      height: 100vh;
-    }
-
-    .nav {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: #007bff;
-      color: white;
-      padding: 12px 24px;
-      font-size: 18px;
-    }
-
-    .nav button {
-      background: #fff;
-      border: none;
-      color: #007bff;
-      font-size: 16px;
-      font-weight: bold;
-      border-radius: 8px;
-      padding: 6px 14px;
-      cursor: pointer;
-      transition: 0.2s ease-in-out;
-    }
-
-    .nav button:hover {
-      background: #e9ecef;
-    }
-
-    .page-controls {
-      display: flex;
       align-items: center;
       gap: 10px;
+      flex-wrap: wrap;
     }
-
-    .page-number {
-      font-weight: bold;
-      background: white;
-      color: #007bff;
-      padding: 6px 12px;
-      border-radius: 8px;
+    .logo {
+      width: 120px;
+      height: auto;
     }
-
-    .page-selector {
+    .foto-aluno {
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 5px solid #2259f2;
+    }
+    .nome-aluno {
+      font-size: 24px;
+      font-weight: 600;
       margin-top: 10px;
+      color: #2259f2;
+    }
+    .container {
+      width: 90%;
+      margin: 20px auto;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 10px;
+      text-align: center;
+    }
+    th {
+      background-color: #2259f2;
+      color: white;
+    }
+    #navegacaoIds {
       display: flex;
+      gap: 5px;
       flex-wrap: wrap;
       justify-content: center;
-      gap: 10px;
-      padding: 10px;
+      margin-top: 10px;
     }
-
-    .page-selector button {
-      background: #fff;
-      border: 2px solid #007bff;
-      color: #007bff;
-      font-size: 16px;
-      padding: 5px 10px;
-      border-radius: 8px;
+    #navegacaoIds button {
+      padding: 8px 12px;
+      background-color: #eee;
+      border: 1px solid #ccc;
+      border-radius: 5px;
       cursor: pointer;
-      transition: 0.2s ease-in-out;
+      font-weight: 600;
+      color: #2259f2;
+      transition: background-color 0.3s, color 0.3s;
     }
-
-    .page-selector button:hover {
-      background: #007bff;
+    #navegacaoIds button:hover {
+      background-color: #2259f2;
       color: white;
     }
-
-    iframe {
-      flex: 1;
-      border: none;
-      width: 100%;
+    #navegacaoIds button.active {
+      background-color: #2259f2;
+      color: white;
+      cursor: default;
+    }
+    #analiseFixo {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      z-index: 1000;
+    }
+    #analiseFixo select {
+      padding: 8px 12px;
+      font-size: 16px;
+      border-radius: 8px;
+      border: 2px solid #2259f2;
+      color: #2259f2;
+      font-weight: bold;
+      background-color: #fff;
     }
   </style>
 </head>
 <body>
-
-  <div class="nav">
-    <button onclick="window.location.href='https://professorgaldino.github.io/sitetv/sala.html'">← Voltar para as salas</button>
-
-    <div class="page-controls">
-      <button onclick="goPrev()">← Anterior</button>
-      <span class="page-number" id="page-number">Página: 1</span>
-      <button onclick="goNext()">Próxima →</button>
-      <button onclick="window.location.href='https://professorgaldino.github.io/9c/analise.html'">📊 Análise</button>
-    </div>
-
-    <button onclick="window.location.href='outros.html'">Verificar outras situações →</button>
+  <div id="analiseFixo">
+    <select id="seletorSala">
+      <option value="" disabled selected>📚 Selecione a sala</option>
+      <option value="6a">6A</option>
+      <option value="6b">6B</option>
+      <option value="6c">6C</option>
+      <option value="7a">7A</option>
+      <option value="7b">7B</option>
+      <option value="7c">7C</option>
+      <option value="8a">8A</option>
+      <option value="8b">8B</option>
+      <option value="8c">8C</option>
+      <option value="9a">9A</option>
+      <option value="9b">9B</option>
+      <option value="9c">9C</option>
+      <option value="1a">1A</option>
+      <option value="1b">1B</option>
+      <option value="2a">2A</option>
+      <option value="3adm">3ADM</option>
+    </select>
   </div>
 
-  <div class="page-selector" id="page-selector"></div>
+  <header>
+    <img src="logoescola.jpeg" alt="Logo da Escola" class="logo" />
+    <img id="fotoAluno" src="" alt="Foto do Aluno" class="foto-aluno" />
+    <nav id="navegacaoIds" aria-label="Navegação entre boletins"></nav>
+  </header>
 
-  <iframe id="viewer" src=""></iframe>
+  <h1 class="nome-aluno">Carregando nome...</h1>
+
+  <div class="container">
+    <h2>Desempenho Bimestral</h2>
+    <table id="boletim"></table>
+  </div>
+
+  <div class="container">
+    <h2>Ocorrências</h2>
+    <table>
+      <tr><th>Data</th><th>Descrição</th></tr>
+      <tr><td></td><td></td></tr>
+      <tr><td></td><td></td></tr>
+      <tr><td></td><td></td></tr>
+    </table>
+  </div>
 
   <script>
-    const pages = [
-      "a1.html", "a2.html", "a3.html", "a4.html", "a5.html", "a6.html", "a7.html", "a8.html", "a9.html",
-      "a10.html", "a11.html", "a12.html", "a13.html", "a14.html", "a15.html", "a16.html", "a17.html",
-      "a18.html", "a19.html", "a20.html", "a21.html", "a22.html", "a23.html", "a24.html", "a25.html",
-      "a26.html", "a27.html", "a28.html", "a31.html", "a32.html", "a33.html", "a34.html", "a35.html",
-      "a37.html", "a38.html"
-    ];
+    async function obterOuRedirecionarId() {
+      const params = new URLSearchParams(window.location.search);
+      let id = params.get("id");
 
-    let currentIndex = 0;
-
-    const viewer = document.getElementById("viewer");
-    const pageNumber = document.getElementById("page-number");
-    const pageSelector = document.getElementById("page-selector");
-
-    const updateViewer = () => {
-      const currentPage = pages[currentIndex];
-      const pageNum = currentPage.match(/\d+/)?.[0] || "?";
-      viewer.src = currentPage;
-      pageNumber.textContent = "Página: " + pageNum;
-      highlightCurrentButton();
-    };
-
-    const goPrev = () => {
-      if (currentIndex > 0) {
-        currentIndex--;
-        updateViewer();
+      if (!id) {
+        try {
+          const response = await fetch('ids.json');
+          if (!response.ok) throw new Error("Erro ao carregar ids.json");
+          const ids = await response.json();
+          if (ids.length > 0) {
+            const primeiroId = ids[0];
+            const novaURL = new URL(window.location.href);
+            novaURL.searchParams.set("id", primeiroId);
+            window.location.href = novaURL.toString();
+          } else {
+            console.error("ids.json está vazio.");
+          }
+        } catch (erro) {
+          console.error("Erro ao obter ID inicial:", erro);
+        }
+      } else {
+        iniciarPagina(id);
       }
-    };
+    }
 
-    const goNext = () => {
-      if (currentIndex < pages.length - 1) {
-        currentIndex++;
-        updateViewer();
-      }
-    };
+    function iniciarPagina(alunoId) {
+      carregarNavegacao(alunoId);
+      buscarDados(alunoId);
+    }
 
-    const highlightCurrentButton = () => {
-      const buttons = pageSelector.querySelectorAll("button");
-      buttons.forEach((btn, idx) => {
-        btn.style.background = idx === currentIndex ? "#007bff" : "#fff";
-        btn.style.color = idx === currentIndex ? "#fff" : "#007bff";
-      });
-    };
+    async function carregarNavegacao(alunoId) {
+      try {
+        const response = await fetch('ids.json');
+        if (!response.ok) throw new Error('Erro ao carregar ids.json');
+        const ids = await response.json();
 
-    const createPageButtons = () => {
-      pages.forEach((page, index) => {
-        const pageNum = page.match(/\d+/)?.[0] || "?";
-        const button = document.createElement("button");
-        button.textContent = pageNum;
-        button.addEventListener("click", () => {
-          currentIndex = index;
-          updateViewer();
+        const nav = document.getElementById('navegacaoIds');
+        nav.innerHTML = '';
+
+        ids.forEach(id => {
+          const btn = document.createElement('button');
+          btn.textContent = id;
+          btn.dataset.id = id;
+
+          if (String(id) === alunoId) {
+            btn.classList.add('active');
+            btn.disabled = true;
+          }
+
+          btn.addEventListener('click', () => {
+            const url = new URL(window.location);
+            url.searchParams.set('id', id);
+            window.location.href = url.toString();
+          });
+
+          nav.appendChild(btn);
         });
-        pageSelector.appendChild(button);
+
+      } catch (error) {
+        console.error('Erro ao carregar navegação:', error);
+      }
+    }
+
+    async function buscarDados(alunoId) {
+      try {
+        const bimestres = ["dados1.json", "dados2.json", "dados3.json", "dados4.json"];
+        const dadosCompletos = {};
+
+        for (let i = 0; i < bimestres.length; i++) {
+          try {
+            const response = await fetch(bimestres[i]);
+            if (!response.ok) throw new Error(`Arquivo ${bimestres[i]} não encontrado`);
+            const data = await response.json();
+
+            let aluno = data[alunoId];
+
+            if (!aluno) {
+              for (const key in data) {
+                if (data[key][alunoId]) {
+                  aluno = data[key][alunoId];
+                  break;
+                }
+              }
+            }
+
+            if (aluno) {
+              for (const disciplina in aluno) {
+                if (!dadosCompletos[disciplina]) {
+                  dadosCompletos[disciplina] = {
+                    notas: ["-", "-", "-", "-"],
+                    faltas: ["-", "-", "-", "-"],
+                    faltas_acumuladas: ["-", "-", "-", "-"]
+                  };
+                }
+
+                const entrada = aluno[disciplina];
+                dadosCompletos[disciplina].notas[i] = entrada.notas?.[i] ?? "-";
+                dadosCompletos[disciplina].faltas[i] = entrada.faltas?.[i] ?? "-";
+                dadosCompletos[disciplina].faltas_acumuladas[i] = entrada.faltas_acumuladas ?? "-";
+              }
+            }
+          } catch (error) {
+            console.warn(error.message);
+          }
+        }
+
+        carregarBoletim(dadosCompletos);
+        carregarDadosAluno(alunoId);
+      } catch (error) {
+        console.error("Erro ao buscar os dados:", error);
+      }
+    }
+
+    function carregarBoletim(jsonData) {
+      const boletim = document.getElementById("boletim");
+      let tabelaHTML = `<tr>
+        <th>Disciplina</th>
+        <th>1º Bim - Nota</th><th>1º Bim - Faltas</th><th>1º Bim - Faltas Acumuladas</th>
+        <th>2º Bim - Nota</th><th>2º Bim - Faltas</th><th>2º Bim - Faltas Acumuladas</th>
+        <th>3º Bim - Nota</th><th>3º Bim - Faltas</th><th>3º Bim - Faltas Acumuladas</th>
+        <th>4º Bim - Nota</th><th>4º Bim - Faltas</th><th>4º Bim - Faltas Acumuladas</th>
+      </tr>`;
+
+      for (const disciplina in jsonData) {
+        const dados = jsonData[disciplina];
+        tabelaHTML += `<tr>
+          <td>${disciplina}</td>
+          <td class="nota">${dados.notas[0]}</td><td>${dados.faltas[0]}</td><td>${dados.faltas_acumuladas[0]}</td>
+          <td class="nota">${dados.notas[1]}</td><td>${dados.faltas[1]}</td><td>${dados.faltas_acumuladas[1]}</td>
+          <td class="nota">${dados.notas[2]}</td><td>${dados.faltas[2]}</td><td>${dados.faltas_acumuladas[2]}</td>
+          <td class="nota">${dados.notas[3]}</td><td>${dados.faltas[3]}</td><td>${dados.faltas_acumuladas[3]}</td>
+        </tr>`;
+      }
+
+      boletim.innerHTML = tabelaHTML;
+
+      boletim.querySelectorAll("td.nota").forEach(celula => {
+        const valor = celula.textContent.trim();
+        if (valor === "-") {
+          celula.style.backgroundColor = "#e0d4f7";
+        } else if (!isNaN(valor)) {
+          const numero = parseFloat(valor);
+          if (numero < 5) {
+            celula.style.color = "#ff4c4c";
+            celula.style.fontWeight = "bold";
+          }
+        }
       });
-    };
+    }
 
-    createPageButtons();
-    updateViewer();
+    async function carregarDadosAluno(id) {
+      try {
+        const response = await fetch("alunos.json");
+        if (!response.ok) throw new Error("Erro ao carregar alunos.json");
+
+        const dadosAlunos = await response.json();
+        const aluno = dadosAlunos[id];
+
+        if (aluno) {
+          document.querySelector(".nome-aluno").textContent = aluno.nome;
+          document.getElementById("fotoAluno").src = aluno.foto;
+          document.getElementById("fotoAluno").alt = "Foto de " + aluno.nome;
+        } else {
+          console.warn("Aluno não encontrado no JSON de nomes.");
+        }
+      } catch (e) {
+        console.error("Erro ao carregar nome/foto do aluno:", e);
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      obterOuRedirecionarId();
+
+      document.getElementById("seletorSala").addEventListener("change", (e) => {
+        const sala = e.target.value;
+        if (sala) {
+          const url = `https://professorgaldino.github.io/${sala}/analise.html`;
+          window.open(url, "_blank");
+        }
+      });
+    });
   </script>
-
 </body>
 </html>
