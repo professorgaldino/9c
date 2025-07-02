@@ -31,10 +31,6 @@
     "nome": "EDUARDO GABRIEL DE ARAUJO MARTINS",
     "foto": "EDUARDO GABRIEL DE ARAUJO MARTINS.jpg"
   },
-  "9": {
-    "nome": "ELLEN MARIA SILVA ROSA",
-    "foto": "ELLEN MARIA SILVA ROSA.jpg"
-  },
   "10": {
     "nome": "ELOA VITORIA RODRIGUES DE SOUZA",
     "foto": "ELOA VITORIA RODRIGUES DE SOUZA.jpg"
@@ -95,10 +91,6 @@
     "nome": "MARIA VITÓRIA ALVES",
     "foto": "MARIA VITÓRIA ALVES.jpg"
   },
-  "25": {
-    "nome": "MATHEUS CRISTIANO BARBOSA DOS SANTOS",
-    "foto": "MATHEUS CRISTIANO BARBOSA DOS SANTOS.jpg"
-  },
   "26": {
     "nome": "MICHEL KAUAN MARQUES DE SOUSA",
     "foto": "MICHEL KAUAN MARQUES DE SOUSA.jpg"
@@ -131,12 +123,16 @@
     "nome": "VITÓRIA YASMIN DA SILVA BERNARDO",
     "foto": "VITÓRIA YASMIN DA SILVA BERNARDO.jpg"
   },
-  "37": {
-    "nome": "CARLOS ALEXANDRE MALTA",
-    "foto": "CARLOS ALEXANDRE MALTA.jpg"
+  "39": {
+    "nome": "PAULO ESTEVÃO DE SOUSA",
+    "foto": "PAULO ESTEVÃO DE SOUSA.jpg"
   },
-  "38": {
-    "nome": "RYAN FELIPE BATISTA",
-    "foto": "RYAN FELIPE BATISTA.jpg"
+  "40": {
+    "nome": "KEROLLY KAROLLINY DE ALMEIDA SILVA",
+    "foto": "KEROLLY KAROLLINY DE ALMEIDA SILVA.jpg"
+  },
+  "41": {
+    "nome": "JAMILY FRANCATO RIBEIRO",
+    "foto": "JAMILY FRANCATO RIBEIRO.jpg"
   }
 }
